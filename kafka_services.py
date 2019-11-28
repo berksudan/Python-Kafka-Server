@@ -1,55 +1,55 @@
 import settings
 import time
-from bash_utils import run_bash
-
-"""
-** KAFKA BROKER SCRIPTS:
-    * starter: 'bin/kafka-server-start.sh'
-    * stopper: 'bin/kafka-server-stop.sh'
-    * properties: 'config/server.properties'
-
-** ZOOKEEPER SCRIPTS:
-    * starter: 'bin/zookeeper-server-start.sh'
-    * stopper: 'bin/zookeeper-server-stop.sh'
-    * properties: 'config/zookeeper.properties'
-"""
+from bash_facade import run_bash
 
 # Bash Scripts for services.
-kafka_dir = settings.kafka_server_dir
-start_kafka_broker = 'sh %s/bin/kafka-server-start.sh %s/config/server.properties' % (kafka_dir, kafka_dir)
-stop_kafka_broker = 'sh %s/bin/kafka-server-stop.sh' % kafka_dir
-start_zoo_keeper = 'sh %s/bin/zookeeper-server-start.sh %s/config/zookeeper.properties' % (kafka_dir, kafka_dir)
-stop_zoo_keeper = 'sh %s/bin/zookeeper-server-stop.sh' % kafka_dir
+scripts = {
+    'start_broker': 'sh %s/bin/kafka-server-start.sh' % settings.kafka_server_dir,  # Broker starter bash file.
+    'stop_broker': 'sh %s/bin/kafka-server-stop.sh' % settings.kafka_server_dir,  # Broker stopper bash file.
+    'start_zk': 'sh %s/bin/zookeeper-server-start.sh' % settings.kafka_server_dir,  # Zookeeper starter bash file.
+    'stop_zk': 'sh %s/bin/zookeeper-server-stop.sh' % settings.kafka_server_dir  # Zookeeper stopper bash file.
+}
+# Default properties for services, you can change this in KafkaServices constructor.
+default_properties = {
+    'broker': '%s/config/server-tmp.properties' % settings.kafka_server_dir,
+    'zookeeper': '%s/config/zookeeper.properties' % settings.kafka_server_dir
+}
 
 
 class Service:
-    def __init__(self, name: str, start_cmd: str, stop_cmd: str, process: str):
+    def __init__(self, name: str, process_name: str, starter: str, stopper: str, prop: str, debug_mode: bool = False):
         self.name = name
-        self.process = process
-        self.start_cmd = start_cmd
-        self.stop_cmd = stop_cmd
+        self.process = process_name
+        self.starter = starter
+        self.properties = prop
+        self.stop_cmd = stopper
+        self.debug_mode = debug_mode
 
-    def start(self, debug: bool = False):
+    @property
+    def start_script(self):
+        return self.starter + " " + self.properties
+
+    def start(self):
         while not self.is_running():
             print(' > Starting....%s' % self.name)
-            run_bash(shell_command=self.start_cmd, new_terminal=True, debug_msg=debug)
+            run_bash(shell_command=self.start_script, new_terminal=True, debug_msg=self.debug_mode)
             time.sleep(5)  # Value of sleeping time is determined by rule of thumb, it can change.
 
-    def stop(self, debug: bool = False):
+    def stop(self):
         print(' > Stopping....%s' % self.name)
-        run_bash(shell_command=self.stop_cmd, debug_msg=debug)
+        run_bash(shell_command=self.stop_cmd, debug_msg=self.debug_mode)
 
-    def is_running(self, debug: bool = False) -> bool:
-        jps_output = run_bash(shell_command='jps', return_output=True, debug_msg=debug)
+    def is_running(self) -> bool:
+        jps_output = run_bash(shell_command='jps', return_output=True, debug_msg=self.debug_mode)
         return self.process in jps_output
 
 
 class KafkaServices:
-    excluded_process_names = ('Jps', 'Main')
+    excluded_java_processes = ('Jps', 'Main')
 
-    def __init__(self):
-        self.zoo_keeper = Service('ZooKeeper', start_zoo_keeper, stop_zoo_keeper, process='QuorumPeerMain')
-        self.kafka_broker = Service('KafkaBroker', start_kafka_broker, stop_kafka_broker, process='Kafka')
+    def __init__(self, broker_prop: str = default_properties['broker'], zk_prop: str = default_properties['zookeeper']):
+        self.zoo_keeper = Service('ZooKeeper', 'QuorumPeerMain', scripts['start_zk'], scripts['stop_zk'], prop=zk_prop)
+        self.broker = Service('KafkaBroker', 'Kafka', scripts['start_broker'], scripts['stop_broker'], prop=broker_prop)
 
     @property
     def running_processes(self):
@@ -59,18 +59,18 @@ class KafkaServices:
         for process in jps_output.split('\n')[:-1]:
             process_id, process_name = process.split(' ')
             processes.append({'id': process_id, 'process': process_name})
-        return [p for p in processes if p['process'] not in self.excluded_process_names]
+        return [p for p in processes if p['process'] not in self.excluded_java_processes]
 
     def start_all(self):
         print('Starting Apache Kafka services..')
         self.zoo_keeper.start()
-        self.kafka_broker.start()
+        self.broker.start()
         print('------------------------------------ started all.')
 
     def stop_all(self):
         print('Stopping Apache Kafka services..')
         self.zoo_keeper.stop()
-        self.kafka_broker.stop()
+        self.broker.stop()
         print('------------------------------------ stopped all.')
 
     def restart_all(self):
