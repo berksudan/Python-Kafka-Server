@@ -17,14 +17,14 @@ $ python3 start_kafka_server.py <KAFKA_BROKER_PROP_FILE> <ZOOKEEPER_PROP_FILE>
 ### Create Topics
 If you want to create topics, run:
 ```bash
-$ python3 create_topics.py <HOST_IP> <PORT> <TOPIC> [<TOPIC>]
+$ python3 create_topics.py <HOST_IP> <PORT> <TOPIC> [<TOPIC>]*
 # Example: $ python3 create_topics.py localhost 9092 topic1 topic2 topic3
 ```
 
 ### Create Topics
 If you want to delete topics, run:
 ```bash
-$ python3 delete_topics.py <HOST_IP> <PORT> <TOPIC> [<TOPIC>]
+$ python3 delete_topics.py <HOST_IP> <PORT> <TOPIC> [<TOPIC>]*
 # Example: $ python3 delete_topics.py localhost 9092 topic1 topic2 topic3
 ```
 
