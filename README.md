@@ -1,4 +1,4 @@
-# Apache-Kafka-Server
+# Python-Kafka-Server
 
 ## Abstract
 Handy tool to manage Apache Kafka scripts. You can start Apache-Kafka services, create topics, list topics, create producers and consumers easily. It basically automates shell scripts with the power of simplicity and great scalability of Python 3. 
