@@ -21,7 +21,7 @@ $ python3 create_topics.py <HOST_IP> <PORT> <TOPIC> [<TOPIC>]*
 # Example: $ python3 create_topics.py localhost 9092 topic1 topic2 topic3
 ```
 
-### Create Topics
+### Delete Topics
 If you want to delete topics, run:
 ```bash
 $ python3 delete_topics.py <HOST_IP> <PORT> <TOPIC> [<TOPIC>]*
