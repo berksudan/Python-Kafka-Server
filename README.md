@@ -51,7 +51,7 @@ $ python3 test_all.py
 ```
 
 **Sample Output:**
-```bash
+```console
 [INFO] Stopping Apache Kafka services..
 [INFO] Stopping....ZooKeeper
 [INFO] Running shell command: <<sh /[KAFKA_SERVER_PATH]/kafka_lib/default-kafka/bin/zookeeper-server-stop.sh>>
